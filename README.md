@@ -1,1 +1,4 @@
-# telegram_bot
+Telegram bot
+------------
+
+Тестовый телеграм бот
