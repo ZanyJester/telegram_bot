@@ -1,6 +1,4 @@
 import datetime
-from lib2to3.pgen2 import token
-from webbrowser import get
 import requests
 import logging
 import time
