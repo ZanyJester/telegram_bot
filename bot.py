@@ -1,16 +1,11 @@
 import datetime
-import sys
 from webbrowser import get
 import requests
 import logging
-from logging import StreamHandler, Formatter
 import time
 from mysql.connector import connect,Error
-from enum import Enum
-
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s', filename='log.txt')
-
 
 class db_context():
     def create_connection(self,host_name, user_name, user_password, db_name):
