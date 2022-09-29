@@ -76,18 +76,18 @@ class telega_bot():
                 self.send_msg(chat_id, u'note {0} saved'.format(rows))
             else:
                 self.send_msg(chat_id, u'note is blank!')   
-        if command == '/read_last':
+        elif command == '/read_last':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             row = db.execute_read_query(connection, "select text_msg from telegram_bot_db.messages where user_id = {0} order by vcode desc limit 1".format(user_id))
             rows = row[0][0]
             self.send_msg(chat_id, '{0}'.format(rows))
-        if command == '/read_all':
+        elif command == '/read_all':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             rows = db.execute_read_query(connection, "select text_msg from telegram_bot_db.messages where user_id = {0} order by vcode".format(user_id))
             for row in rows:
                 rows = row[0]
                 self.send_msg(chat_id, '{0}'.format(rows))      
-        if command == '/read':
+        elif command == '/read':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             content = parse_text.partition(command)[2]
             row = db.execute_read_query(connection, "select text_msg from telegram_bot_db.messages where user_id = {0} and vcode = {1} order by vcode".format(user_id, content))
@@ -95,13 +95,13 @@ class telega_bot():
                 self.send_msg(chat_id, '{0}'.format(row[0][0]))
             else:
                 self.send_msg(chat_id, 'You didnt enter a note <id> ') 
-        if command == '/tag_all':
+        elif command == '/tag_all':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             rows = db.execute_read_query(connection, "select discription from telegram_bot_db.tags order by vcode")
             for row in rows:
                 rows = row[0]
                 self.send_msg(chat_id, '{0}'.format(rows))
-        if command == '/write_tag':
+        elif command == '/write_tag':
             tag_discr = parse_text.partition(command)[2]
             split_tag_dicrs = tag_discr.split()
             tag = split_tag_dicrs[0]
@@ -113,7 +113,7 @@ class telega_bot():
             else:
                 db.execute_query(connection, "insert into telegram_bot_db.tags (name_tag, discription) values ( %s, %s)", (tag, discr))
                 self.send_msg(chat_id, 'Tag saved')               
-        if command == '/read_tag':
+        elif command == '/read_tag':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             content = parse_text.partition(command)[2]
             row = db.execute_read_query(connection, "select text_msg from telegram_bot_db.messages where user_id = {0} and text_msg like '%{1}%'".format(user_id, content))
@@ -121,7 +121,7 @@ class telega_bot():
                 self.send_msg(chat_id, '{0}'.format(row[0][0]))
             else:
                 self.send_msg(chat_id, 'You didnt enter a note <tag> ')
-        if command == '/tag':
+        elif command == '/tag':
             user_id = self.get_upd()[-1]['message']['chat']['id']
             content = parse_text.partition(command)[2]
             tags = content.split()
