@@ -142,7 +142,7 @@ class telega_bot():
             The /tag_all command displays a description of all tags.
             """
             self.send_msg(chat_id, text)
-        elif command == '' or ' ':
+        elif command:
             self.send_msg(chat_id, 'write /help')
         return text
     #get new messages
