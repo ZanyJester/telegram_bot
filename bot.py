@@ -128,6 +128,19 @@ class telega_bot():
                 for row in rows:
                     rows = row[0]
                     self.send_msg(chat_id, '{0}'.format(rows))
+        if command == '/help':
+            text ="""The /write command writes a message
+            The /read_last command displays the last message for the given user.
+            The /read <id> command displays the message field with the specified id.
+            The /read_all command lists all the notes of the current bot user in order from oldest to newest.
+            The /read_tag tag command displays all the user's notes by the specified tag in the message
+            The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.
+            The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.
+            The /tag_all command displays a description of all tags.
+            """
+            self.send_msg(chat_id, text)
+        else:
+            self.send_msg(chat_id, 'write /help')
         return text
     
     def get_upd(self, offset=0):
@@ -155,7 +168,7 @@ class telega_bot():
         for mes in message.lower():
             if mes in ['/start']:
                 self.get_user(user_id)
-                self.send_msg(chat_id, u'Hi write /help')            
+                self.send_msg(chat_id, 'Hi write /help')            
                                                                                        
 def run():
     update_id = bot.get_upd()[-1]['update_id']
