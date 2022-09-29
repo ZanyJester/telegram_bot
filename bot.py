@@ -8,6 +8,7 @@ from mysql.connector import connect,Error
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s', filename='log.txt')
 
 class db_context():
+    #create string connection db
     def create_connection(self,host_name, user_name, user_password, db_name):
         connection = None
         try:
@@ -21,7 +22,7 @@ class db_context():
         except Error as e:
             print("The error create_connection {0} occurred").format(e)
         return connection
-    
+    #for insert,update,delete quary
     def execute_query(self, connection, query, val):
         cursor = connection.cursor()
         try:
@@ -30,7 +31,7 @@ class db_context():
             print("Query executed successfully")
         except Error as e:
             print("The error execute_query {0} occurred").format(e)
-            
+    #for select query     
     def execute_read_query(self, connection, query):
         cursor = connection.cursor()
         result = None
@@ -56,6 +57,7 @@ class get_log():
 
 
 class telega_bot():
+    # parse command 
     def parse_text_to_command(self, chat_id, text):
         parse_text= text.replace(',',"") 
         command = parse_text.split()[0]
@@ -142,7 +144,7 @@ class telega_bot():
         else:
             self.send_msg(chat_id, 'write /help')
         return text
-    
+    #get new messages
     def get_upd(self, offset=0):
         result = requests.get(                                                          
             url='https://api.telegram.org/bot5494171046:AAEdBcniMJ4F8dtVXKSsypEJTidfoNchfVc/{0}'.format("getUpdates"),
@@ -151,10 +153,10 @@ class telega_bot():
             }
         ).json()
         return result['result']
-
+    #get new user before user writed /start
     def get_user(self, user_id):                   
         db.execute_query(connection, """insert into telegram_bot_db.users (user_id,date_appeal) VALUES (%s, %s)""", (user_id, datetime.datetime.now(),))
-
+    #anwser user
     def send_msg(self, chat_id, text):
         requests.get(
         url='https://api.telegram.org/bot5494171046:AAEdBcniMJ4F8dtVXKSsypEJTidfoNchfVc/{0}'.format("sendMessage"),
@@ -162,7 +164,7 @@ class telega_bot():
             "chat_id": chat_id,
             "text": text,
         })
-                          
+    #check new messages in chat                      
     def check_msg(self, chat_id, message):
         user_id = self.get_upd()[-1]['message']['chat']['id']
         for mes in message.lower():
