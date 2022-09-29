@@ -1,8 +1,11 @@
 import datetime
+from lib2to3.pgen2 import token
 from webbrowser import get
 import requests
 import logging
 import time
+import yaml
+from yaml.loader import SafeLoader
 from mysql.connector import connect,Error
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s', filename='log.txt')
@@ -130,7 +133,7 @@ class telega_bot():
                 for row in rows:
                     rows = row[0]
                     self.send_msg(chat_id, '{0}'.format(rows))
-        if command == '/help':
+        elif command == '/help':
             text ="""The /write command writes a message
             The /read_last command displays the last message for the given user.
             The /read <id> command displays the message field with the specified id.
@@ -141,13 +144,13 @@ class telega_bot():
             The /tag_all command displays a description of all tags.
             """
             self.send_msg(chat_id, text)
-        else:
+        elif command == '' or ' ':
             self.send_msg(chat_id, 'write /help')
         return text
     #get new messages
     def get_upd(self, offset=0):
         result = requests.get(                                                          
-            url='https://api.telegram.org/bot5494171046:AAEdBcniMJ4F8dtVXKSsypEJTidfoNchfVc/{0}'.format("getUpdates"),
+            url='https://api.telegram.org/bot{0}/{1}'.format(token,"getUpdates"),
             params = {
                 "offset": offset,
             }
@@ -159,7 +162,7 @@ class telega_bot():
     #anwser user
     def send_msg(self, chat_id, text):
         requests.get(
-        url='https://api.telegram.org/bot5494171046:AAEdBcniMJ4F8dtVXKSsypEJTidfoNchfVc/{0}'.format("sendMessage"),
+        url='https://api.telegram.org/bot{0}/{1}'.format(token,"sendMessage"),
         params = {
             "chat_id": chat_id,
             "text": text,
@@ -189,7 +192,14 @@ if __name__ == '__main__':
     db = db_context()
     bot = telega_bot()
     log= get_log()
-    connection = db.create_connection('localhost', 'root', '12345', 'telegram_bot_db')
+    with open('config.yaml', 'r') as f:
+        yml = yaml.load(f, Loader=SafeLoader)
+    connection = db.create_connection(
+        host_name=yml['db']['host_name'], 
+        user_name=yml['db']['user_name'], 
+        user_password=yml['db']['user_password'], 
+        db_name=yml['db']['db_name'])
+    token = yml['bot']['token']
     run()
 
     
