@@ -23,7 +23,7 @@ def create_connection(host_name, user_name, user_password, db_name):
         print("Connection to MySQL DB successful")
     except Error as e:
         print("The error create_connection {0} occurred").format(e)
-        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
+        log_message(connection, e, datetime.datetime.now())
     return connection
 
 def execute_query(connection, query, val):
@@ -33,10 +33,10 @@ def execute_query(connection, query, val):
         cursor.execute(query, val)
         connection.commit()
         print("Query executed successfully")
-        log_message(upd[-1]['message']['chat']['id'], query, upd[-1]['message']['date'])
+        log_message(connection, query, datetime.datetime.now())
     except Error as e:
         print("The error execute_query {0} occurred").format(e)
-        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
+        log_message(connection, e, datetime.datetime.now())
 
 
 def execute_read_query(connection, query, val=None):
@@ -46,16 +46,14 @@ def execute_read_query(connection, query, val=None):
     try:
         cursor.execute(query, val)
         result = cursor.fetchall()
-        log_message(upd[-1]['message']['chat']['id'], query, upd[-1]['message']['date'])
+        log_message(connection, query, datetime.datetime.now())
         return result
     except Error as e:
         print("The error read_query {0} occurred").format(e)
-        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
+        log_message(connection, e, datetime.datetime.now())
 
 
 def log_message(chat_id, text, date):
-    messageTime = datetime.datetime.utcfromtimestamp(date)
-    date = messageTime.strftime('%Y-%m-%d %H:%M:%S')
     log = str(chat_id) + ' ' + str(text) + ' ' + str(date)
     logging.info(log)
 
@@ -180,7 +178,7 @@ def run():
                 update_id = message['update_id']
                 telegram_bot(
                     message['message']['chat']['id'], message['message']['text'])
-                log_message(message['message']['chat']['id'], message['message']['text'], message['message']['date'])
+                log_message(message['message']['chat']['id'], message['message']['text'], datetime.datetime.now())
                 
 
 
