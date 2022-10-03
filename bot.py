@@ -41,11 +41,11 @@ def execute_query(connection, query, val):
 # select query
 
 
-def execute_read_query(connection, query):
+def execute_read_query(connection, query, val=None):
     cursor = connection.cursor()
     result = None
     try:
-        cursor.execute(query)
+        cursor.execute(query, val)
         result = cursor.fetchall()
         return result
     except Error as e:
@@ -72,9 +72,10 @@ def telegram_bot(chat_id, text):
     command = parse_text.split()[0]
     user_id = upd[-1]['message']['chat']['id']
     if command == '/start':
-        row= execute_read_query(connection, "select vcode from telegram_bot_db.user where ex".format(user_id))
-        execute_query(connection, """insert into telegram_bot_db.users (user_id,date_appeal) VALUES (%s, %s)""",
-                      (user_id, datetime.datetime.now(),))
+        row = execute_read_query(
+            connection, "select vcode from telegram_bot_db.user where user_id = %(user_id)s", {'user_id': user_id})
+        execute_query(connection, "insert into telegram_bot_db.users (user_id,date_appeal) VALUES (%(user_id)s, %(date_appeal)s)", {
+                      'user_id': user_id, 'date_appeal': datetime.datetime.now()})
         send_msg(chat_id, 'Hi write /help')
     elif command == '/write':
         content = parse_text.partition(command)[2]
@@ -84,29 +85,29 @@ def telegram_bot(chat_id, text):
         messageTime = messageTime.strftime('%Y-%m-%d %H:%M:%S')
         TimeStamp = str(messageTime)
         if content:
-            execute_query(connection, "insert into telegram_bot_db.messages (user_id, message_id, text_msg, date_send) values ( %s , %s, %s, %s)", (
-                user_id, message_id, content, TimeStamp,))
+            execute_query(connection, "insert into telegram_bot_db.messages (user_id, message_id, text_msg, date_send) values ( %(user_id)s , %(message_id)s, %(text_msg)s, %(date_send)s)",
+                          {'user_id': user_id, 'message_id': message_id, 'text_msg': content, 'date_send': TimeStamp, })
             row = execute_read_query(
-                connection, "select vcode from telegram_bot_db.messages where user_id = {0} order by vcode desc limit 1".format(user_id))
+                connection, "select vcode from telegram_bot_db.messages where user_id = %(user_id)s order by vcode desc limit 1", {'user_id': user_id})
             rows = row[0][0]
-            send_msg(chat_id, u'note {0} saved'.format(rows))
+            send_msg(chat_id, 'note {0} saved'.format(rows))
         else:
-            send_msg(chat_id, u'note is blank!')
+            send_msg(chat_id, 'note is blank!')
     elif command == '/read_last':
         row = execute_read_query(
-            connection, "select text_msg from telegram_bot_db.messages where user_id = {0} order by vcode desc limit 1".format(user_id))
+            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s order by vcode desc limit 1", {'user_id': user_id})
         rows = row[0][0]
         send_msg(chat_id, '{0}'.format(rows))
     elif command == '/read_all':
         rows = execute_read_query(
-            connection, "select text_msg from telegram_bot_db.messages where user_id = {0} order by vcode".format(user_id))
+            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s order by vcode", {'user_id': user_id})
         for row in rows:
             rows = row[0]
             send_msg(chat_id, '{0}'.format(rows))
     elif command == '/read':
         content = parse_text.partition(command)[2]
         row = execute_read_query(
-            connection, "select text_msg from telegram_bot_db.messages where user_id = {0} and vcode = {1} order by vcode".format(user_id, content))
+            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s and vcode = %(vcode)s order by vcode",{'user_id': user_id, 'vcode': content})
         if row or '':
             send_msg(chat_id, '{0}'.format(row[0][0]))
         else:
@@ -123,19 +124,19 @@ def telegram_bot(chat_id, text):
         tag = split_tag_dicrs[0]
         discr = parse_text.partition(tag)[2]
         row = execute_read_query(
-            connection, "select name_tag from telegram_bot_db.tags where name_tag like '%{0}' order by vcode".format(tag))
+            connection, "select name_tag from telegram_bot_db.tags where name_tag = %(name_tag)s order by vcode", {'name_tag': tag})
         if row:
             send_msg(chat_id, 'Tag updated')
             execute_query(
-                connection, "update telegram_bot_db.tags set name_tag =  %s, discription = %s where name_tag like '%{0}%'".format(tag), (tag, discr))
+                connection, "update telegram_bot_db.tags set name_tag =  %(name_tag)s, discription = %(discription)s where name_tag = %(name_tag)s", {'name_tag': tag, 'discription': discr})
         else:
             execute_query(
-                connection, "insert into telegram_bot_db.tags (name_tag, discription) values ( %s, %s)", (tag, discr))
+                connection, "insert into telegram_bot_db.tags (name_tag, discription) values ( %(name_tag)s, %(discription)s)", {'name_tag': tag, 'discription': discr})
             send_msg(chat_id, 'Tag saved')
     elif command == '/read_tag':
         content = parse_text.partition(command)[2]
         row = execute_read_query(
-            connection, "select text_msg from telegram_bot_db.messages where user_id = {0} and text_msg like '%{1}%'".format(user_id, content))
+            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s and MATCH (text_msg) AGAINST (+%(tag)s)", {'user_id': user_id, 'tag': content})
         if row or '':
             send_msg(chat_id, '{0}'.format(row[0][0]))
         else:
@@ -145,20 +146,20 @@ def telegram_bot(chat_id, text):
         tags = content.split()
         for tag in tags:
             rows = execute_read_query(
-                connection, "select discription from telegram_bot_db.tags where name_tag like '%{0}%' order by vcode".format(tag))
+                connection, "select discription from telegram_bot_db.tags where name_tag = %(name_tag)s order by vcode", {'name_tag': tag})
             for row in rows:
                 rows = row[0]
                 send_msg(chat_id, '{0}'.format(rows))
     elif command == '/help':
         text = """
-The /write command writes a message\n
-The /read_last command displays the last message for the given user.\n
-The /read <id> command displays the message field with the specified id.\n
-The /read_all command lists all the notes of the current bot user in order from oldest to newest.\n
-The /read_tag tag command displays all the user's notes by the specified tag in the message.\n
-The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.\n
-The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.\n
-The /tag_all command displays a description of all tags.\n
+The /write command writes a message
+The /read_last command displays the last message for the given user.
+The /read <id> command displays the message field with the specified id.
+The /read_all command lists all the notes of the current bot user in order from oldest to newest.
+The /read_tag tag command displays all the user's notes by the specified tag in the message.
+The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.
+The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.
+The /tag_all command displays a description of all tags.
                 """
         send_msg(chat_id, text)
     elif command:
@@ -191,9 +192,6 @@ def send_msg(chat_id, text):
         }, timeout=60)
 
 # check new messages in chat
-
-
-            
 
 
 def run():

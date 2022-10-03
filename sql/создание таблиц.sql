@@ -17,7 +17,8 @@ create table Messages
     user_id int,
     message_id int,
     text_msg varchar(255),
-    date_send datetime
+    date_send datetime,
+    FULLTEXT (text_msg)
 );
 
 insert into telegram_bot_db.messages (user_id,message_id, text_msg,date_send) 
