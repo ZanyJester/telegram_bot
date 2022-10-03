@@ -23,9 +23,8 @@ def create_connection(host_name, user_name, user_password, db_name):
         print("Connection to MySQL DB successful")
     except Error as e:
         print("The error create_connection {0} occurred").format(e)
-        logging.error(e)
+        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
     return connection
-
 
 def execute_query(connection, query, val):
     # insert,update,delete quary
@@ -34,9 +33,10 @@ def execute_query(connection, query, val):
         cursor.execute(query, val)
         connection.commit()
         print("Query executed successfully")
+        log_message(upd[-1]['message']['chat']['id'], query, upd[-1]['message']['date'])
     except Error as e:
         print("The error execute_query {0} occurred").format(e)
-        logging.info(e)
+        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
 
 
 def execute_read_query(connection, query, val=None):
@@ -46,22 +46,17 @@ def execute_read_query(connection, query, val=None):
     try:
         cursor.execute(query, val)
         result = cursor.fetchall()
+        log_message(upd[-1]['message']['chat']['id'], query, upd[-1]['message']['date'])
         return result
     except Error as e:
         print("The error read_query {0} occurred").format(e)
-        logging.info(e)
+        log_message(upd[-1]['message']['chat']['id'], e, upd[-1]['message']['date'])
 
 
-def loggining():
-    user_id = upd[-1]['message']['chat']['id']
-    text = upd[-1]['message']['text']
-    messageTime = upd[-1]['message']['date']
-    messageTime = datetime.datetime.utcfromtimestamp(messageTime)
-    messageTime = messageTime.strftime('%Y-%m-%d %H:%M:%S')
-    loguserid = str(user_id)
-    logtext = str(text)
-    logdate = str(messageTime)
-    log = loguserid + ' ' + logtext + ' ' + logdate
+def log_message(chat_id, text, date):
+    messageTime = datetime.datetime.utcfromtimestamp(date)
+    date = messageTime.strftime('%Y-%m-%d %H:%M:%S')
+    log = str(chat_id) + ' ' + str(text) + ' ' + str(date)
     logging.info(log)
 
 
@@ -185,7 +180,8 @@ def run():
                 update_id = message['update_id']
                 telegram_bot(
                     message['message']['chat']['id'], message['message']['text'])
-                loggining()
+                log_message(message['message']['chat']['id'], message['message']['text'], message['message']['date'])
+                
 
 
 if __name__ == '__main__':
