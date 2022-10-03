@@ -22,8 +22,9 @@ def create_connection(host_name, user_name, user_password, db_name):
         )
         log_message("Connection to MySQL DB successful", connection, datetime.datetime.now())
     except Error as e:
-        print("The error create_connection {0} occurred").format(e)
         log_message("The error create_connection", e, datetime.datetime.now())
+        time.sleep(5)
+        return False
     return connection
 
 def execute_query(connection, query, val):
@@ -166,9 +167,19 @@ def send_msg(chat_id, text):
 
 
 def run():
-    # check new messages in chat
-    update_id = upd[-1]['update_id']
+    # check new messages in chat    
+    update_id = upd[-1]['update_id'] 
+    connection= False       
     while True:
+        if not connection:
+            while True:
+                connection= create_connection(
+                    host_name=yml['db']['host_name'],
+                    user_name=yml['db']['user_name'],
+                    user_password=yml['db']['user_password'],
+                    db_name=yml['db']['db_name'])
+                if connection:
+                    break  
         messages = get_upd(update_id)
         for message in messages:
             if update_id < message['update_id']:
