@@ -9,10 +9,9 @@ from mysql.connector import connect, Error
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s:%(message)s', filename='log.txt')
 
-# create string connection db
-
 
 def create_connection(host_name, user_name, user_password, db_name):
+    # create string connection db
     connection = None
     try:
         connection = connect(
@@ -24,12 +23,12 @@ def create_connection(host_name, user_name, user_password, db_name):
         print("Connection to MySQL DB successful")
     except Error as e:
         print("The error create_connection {0} occurred").format(e)
+        logging.error(e)
     return connection
-
-# insert,update,delete quary
 
 
 def execute_query(connection, query, val):
+    # insert,update,delete quary
     cursor = connection.cursor()
     try:
         cursor.execute(query, val)
@@ -37,11 +36,11 @@ def execute_query(connection, query, val):
         print("Query executed successfully")
     except Error as e:
         print("The error execute_query {0} occurred").format(e)
-
-# select query
+        logging.info(e)
 
 
 def execute_read_query(connection, query, val=None):
+    # select query
     cursor = connection.cursor()
     result = None
     try:
@@ -50,6 +49,7 @@ def execute_read_query(connection, query, val=None):
         return result
     except Error as e:
         print("The error read_query {0} occurred").format(e)
+        logging.info(e)
 
 
 def loggining():
@@ -64,10 +64,9 @@ def loggining():
     log = loguserid + ' ' + logtext + ' ' + logdate
     logging.info(log)
 
-# parse command
-
 
 def telegram_bot(chat_id, text):
+    # parse command
     parse_text = text.replace(',', "")
     command = parse_text.split()[0]
     user_id = upd[-1]['message']['chat']['id']
@@ -107,7 +106,7 @@ def telegram_bot(chat_id, text):
     elif command == '/read':
         content = parse_text.partition(command)[2]
         row = execute_read_query(
-            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s and vcode = %(vcode)s order by vcode",{'user_id': user_id, 'vcode': content})
+            connection, "select text_msg from telegram_bot_db.messages where user_id = %(user_id)s and vcode = %(vcode)s order by vcode", {'user_id': user_id, 'vcode': content})
         if row or '':
             send_msg(chat_id, '{0}'.format(row[0][0]))
         else:
@@ -151,50 +150,33 @@ def telegram_bot(chat_id, text):
                 rows = row[0]
                 send_msg(chat_id, '{0}'.format(rows))
     elif command == '/help':
-        text = """
-The /write command writes a message
-The /read_last command displays the last message for the given user.
-The /read <id> command displays the message field with the specified id.
-The /read_all command lists all the notes of the current bot user in order from oldest to newest.
-The /read_tag tag command displays all the user's notes by the specified tag in the message.
-The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.
-The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.
-The /tag_all command displays a description of all tags.
-                """
-        send_msg(chat_id, text)
+        send_msg(chat_id, 
+              "The /write command writes a message"
+              "The /read_last command displays the last message for the given user."
+              "The /read <id> command displays the message field with the specified id."
+              "The /read_all command lists all the notes of the current bot user in order from oldest to newest."
+              "The /read_tag tag command displays all the user's notes by the specified tag in the message."
+              "The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description."
+              "The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags."
+              "The /tag_all command displays a description of all tags.")
     elif command:
         send_msg(chat_id, 'write /help')
     return text
 
-# get new messages
-
 
 def get_upd(offset=0):
-    result = requests.get(
-        url='https://api.telegram.org/bot{0}/{1}'.format(
-            token, "getUpdates"),
-        params={
-            "offset": offset,
-        }, timeout=60).json()
+    # get new messages
+    result = requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "getUpdates"),params={"offset": offset,}, timeout=60).json()
     return result['result']
 
 
-# anwser user
-
-
 def send_msg(chat_id, text):
-    requests.get(
-        url='https://api.telegram.org/bot{0}/{1}'.format(
-            token, "sendMessage"),
-        params={
-            "chat_id": chat_id,
-            "text": text,
-        }, timeout=60)
-
-# check new messages in chat
+    # anwser user
+    requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "sendMessage"),params={"chat_id": chat_id,"text": text, }, timeout=60)
 
 
 def run():
+    # check new messages in chat
     update_id = upd[-1]['update_id']
     while True:
         messages = get_upd(update_id)
@@ -203,6 +185,7 @@ def run():
                 update_id = message['update_id']
                 telegram_bot(
                     message['message']['chat']['id'], message['message']['text'])
+                loggining()
 
 
 if __name__ == '__main__':
@@ -216,3 +199,4 @@ if __name__ == '__main__':
     token = yml['bot']['token']
     upd = get_upd()
     run()
+
