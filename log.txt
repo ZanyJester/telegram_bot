@@ -13,3 +13,7 @@
 2022-10-03 16:26:35,105 INFO:830009263 select text_msg from telegram_bot_db.messages where user_id = %(user_id)s order by vcode desc limit 1 2022-10-03 11:26:06
 2022-10-03 16:26:35,418 INFO:830009263 /read_last 2022-10-03 11:26:34
 2022-10-03 16:49:09,533 INFO:None 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES) 2022-10-03 16:49:09.534000
+2022-10-03 16:50:04,782 INFO:<mysql.connector.connection.MySQLConnection object at 0x0000000003ED7B08> select text_msg from telegram_bot_db.messages where user_id = %(user_id)s order by vcode desc limit 1 2022-10-03 16:50:04.783000
+2022-10-03 16:50:05,115 INFO:830009263 /read_last 2022-10-03 16:50:05.115000
+2022-10-03 16:51:31,634 INFO:830009263 /help 2022-10-03 16:51:31.634000
+2022-10-03 16:53:47,388 INFO:Connection to MySQL DB successful <mysql.connector.connection.MySQLConnection object at 0x0000000004975B88> 2022-10-03 16:53:47.389000

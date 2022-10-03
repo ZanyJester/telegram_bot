@@ -20,10 +20,10 @@ def create_connection(host_name, user_name, user_password, db_name):
             passwd=user_password,
             database=db_name
         )
-        print("Connection to MySQL DB successful")
+        log_message("Connection to MySQL DB successful", connection, datetime.datetime.now())
     except Error as e:
         print("The error create_connection {0} occurred").format(e)
-        log_message(connection, e, datetime.datetime.now())
+        log_message("The error create_connection", e, datetime.datetime.now())
     return connection
 
 def execute_query(connection, query, val):
@@ -32,11 +32,9 @@ def execute_query(connection, query, val):
     try:
         cursor.execute(query, val)
         connection.commit()
-        print("Query executed successfully")
-        log_message(connection, query, datetime.datetime.now())
+        log_message("Query executed successfully", query, datetime.datetime.now())
     except Error as e:
-        print("The error execute_query {0} occurred").format(e)
-        log_message(connection, e, datetime.datetime.now())
+        log_message("The error execute_query", e, datetime.datetime.now())
 
 
 def execute_read_query(connection, query, val=None):
@@ -49,8 +47,7 @@ def execute_read_query(connection, query, val=None):
         log_message(connection, query, datetime.datetime.now())
         return result
     except Error as e:
-        print("The error read_query {0} occurred").format(e)
-        log_message(connection, e, datetime.datetime.now())
+        log_message("The error read_query", e, datetime.datetime.now())
 
 
 def log_message(chat_id, text, date):
@@ -144,14 +141,14 @@ def telegram_bot(chat_id, text):
                 send_msg(chat_id, '{0}'.format(rows))
     elif command == '/help':
         send_msg(chat_id, 
-              "The /write command writes a message"
-              "The /read_last command displays the last message for the given user."
-              "The /read <id> command displays the message field with the specified id."
-              "The /read_all command lists all the notes of the current bot user in order from oldest to newest."
-              "The /read_tag tag command displays all the user's notes by the specified tag in the message."
-              "The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description."
-              "The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags."
-              "The /tag_all command displays a description of all tags.")
+              "The /write command writes a message.\n"
+              "The /read_last command displays the last message for the given user.\n"
+              "The /read <id> command displays the message field with the specified id.\n"
+              "The /read_all command lists all the notes of the current bot user in order from oldest to newest.\n"
+              "The /read_tag tag command displays all the user's notes by the specified tag in the message.\n"
+              "The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.\n"
+              "The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.\n"
+              "The /tag_all command displays a description of all tags.\n")
     elif command:
         send_msg(chat_id, 'write /help')
     return text
