@@ -1,17 +1,18 @@
+# -*- coding: UTF-8 -*-
 import datetime
 import requests
 import logging
 import time
 import yaml
 from yaml.loader import SafeLoader
-from mysql.connector import connect, Error
+from mysql.connector import connect
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s:%(message)s', filename='log.txt')
 
 
 def create_connection(host_name, user_name, user_password, db_name):
-    # create string connection db
+    # строка подкления к бд
     connection = None
     try:
         connection = connect(
@@ -21,25 +22,25 @@ def create_connection(host_name, user_name, user_password, db_name):
             database=db_name
         )
         log_message("Connection to MySQL DB successful", connection, datetime.datetime.now())
-    except Error as e:
+    except Exception as e:
         log_message("The error create_connection", e, datetime.datetime.now())
         time.sleep(5)
         return False
     return connection
 
 def execute_query(connection, query, val):
-    # insert,update,delete quary
+    # вставка, обвновление и удаление записей
     cursor = connection.cursor()
     try:
         cursor.execute(query, val)
         connection.commit()
         log_message("Query executed successfully", query, datetime.datetime.now())
-    except Error as e:
+    except Exception as e:
         log_message("The error execute_query", e, datetime.datetime.now())
 
 
 def execute_read_query(connection, query, val=None):
-    # select query
+    # выборка записей
     cursor = connection.cursor()
     result = None
     try:
@@ -47,7 +48,7 @@ def execute_read_query(connection, query, val=None):
         result = cursor.fetchall()
         log_message(connection, query, datetime.datetime.now())
         return result
-    except Error as e:
+    except Exception as e:
         log_message("The error read_query", e, datetime.datetime.now())
 
 
@@ -57,7 +58,7 @@ def log_message(chat_id, text, date):
 
 
 def telegram_bot(chat_id, text):
-    # parse command
+    # телеграм бот, парсер команд
     parse_text = text.replace(',', "")
     command = parse_text.split()[0]
     user_id = upd[-1]['message']['chat']['id']
@@ -156,18 +157,18 @@ def telegram_bot(chat_id, text):
 
 
 def get_upd(offset=0):
-    # get new messages
+    # получаем последние сообщения
     result = requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "getUpdates"),params={"offset": offset,}, timeout=60).json()
     return result['result']
 
 
 def send_msg(chat_id, text):
-    # anwser user
+    # отвечаем в чат пользователю
     requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "sendMessage"),params={"chat_id": chat_id,"text": text, }, timeout=60)
 
 
 def run():
-    # check new messages in chat    
+    # cпроверяем сообщения в чате    
     update_id = upd[-1]['update_id'] 
     connection= False       
     while True:
@@ -191,6 +192,7 @@ def run():
 
 
 if __name__ == '__main__':
+    # грузим конфиг для бд и api
     with open('config.yaml', 'r') as f:
         yml = yaml.load(f, Loader=SafeLoader)
     connection = create_connection(
