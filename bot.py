@@ -21,12 +21,14 @@ def create_connection(host_name, user_name, user_password, db_name):
             passwd=user_password,
             database=db_name
         )
-        log_message("Connection to MySQL DB successful", connection, datetime.datetime.now())
+        log_message("Connection to MySQL DB successful",
+                    connection, datetime.datetime.now())
     except Exception as e:
         log_message("The error create_connection", e, datetime.datetime.now())
         time.sleep(5)
         return False
     return connection
+
 
 def execute_query(connection, query, val):
     # вставка, обвновление и удаление записей
@@ -34,7 +36,8 @@ def execute_query(connection, query, val):
     try:
         cursor.execute(query, val)
         connection.commit()
-        log_message("Query executed successfully", query, datetime.datetime.now())
+        log_message("Query executed successfully",
+                    query, datetime.datetime.now())
     except Exception as e:
         log_message("The error execute_query", e, datetime.datetime.now())
 
@@ -142,15 +145,15 @@ def telegram_bot(chat_id, text):
                 rows = row[0]
                 send_msg(chat_id, '{0}'.format(rows))
     elif command == '/help':
-        send_msg(chat_id, 
-              "The /write command writes a message.\n"
-              "The /read_last command displays the last message for the given user.\n"
-              "The /read <id> command displays the message field with the specified id.\n"
-              "The /read_all command lists all the notes of the current bot user in order from oldest to newest.\n"
-              "The /read_tag tag command displays all the user's notes by the specified tag in the message.\n"
-              "The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.\n"
-              "The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.\n"
-              "The /tag_all command displays a description of all tags.\n")
+        send_msg(chat_id,
+                 "The /write command writes a message.\n"
+                 "The /read_last command displays the last message for the given user.\n"
+                 "The /read <id> command displays the message field with the specified id.\n"
+                 "The /read_all command lists all the notes of the current bot user in order from oldest to newest.\n"
+                 "The /read_tag tag command displays all the user's notes by the specified tag in the message.\n"
+                 "The /write_tag <tag> <tag description> command creates a tag. If the tag already exists, then changes its description.\n"
+                 "The /tag <tag_1>,<tag_2>...<tag_n> command displays the description of the entered tags.\n"
+                 "The /tag_all command displays a description of all tags.\n")
     elif command:
         send_msg(chat_id, 'write /help')
     return text
@@ -158,37 +161,37 @@ def telegram_bot(chat_id, text):
 
 def get_upd(offset=0):
     # получаем последние сообщения
-    result = requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "getUpdates"),params={"offset": offset,}, timeout=60).json()
+    result = requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "getUpdates"), params={"offset": offset, }, timeout=60).json()
     return result['result']
 
 
 def send_msg(chat_id, text):
     # отвечаем в чат пользователю
-    requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "sendMessage"),params={"chat_id": chat_id,"text": text, }, timeout=60)
+    requests.get(url='https://api.telegram.org/bot{0}/{1}'.format(token, "sendMessage"), params={"chat_id": chat_id, "text": text, }, timeout=60)
 
 
 def run():
-    # cпроверяем сообщения в чате    
-    update_id = upd[-1]['update_id'] 
-    connection= False       
+    # cпроверяем сообщения в чате
+    update_id = upd[-1]['update_id']
+    connection = False
     while True:
         if not connection:
             while True:
-                connection= create_connection(
+                connection = create_connection(
                     host_name=yml['db']['host_name'],
                     user_name=yml['db']['user_name'],
                     user_password=yml['db']['user_password'],
                     db_name=yml['db']['db_name'])
                 if connection:
-                    break  
+                    break
         messages = get_upd(update_id)
         for message in messages:
             if update_id < message['update_id']:
                 update_id = message['update_id']
                 telegram_bot(
                     message['message']['chat']['id'], message['message']['text'])
-                log_message(message['message']['chat']['id'], message['message']['text'], datetime.datetime.now())
-                
+                log_message(message['message']['chat']['id'],
+                            message['message']['text'], datetime.datetime.now())
 
 
 if __name__ == '__main__':
@@ -203,4 +206,3 @@ if __name__ == '__main__':
     token = yml['bot']['token']
     upd = get_upd()
     run()
-
