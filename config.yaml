@@ -1,7 +1,7 @@
 db:
-  host_name: 'localhost'
-  user_name: 'root'
-  user_password: '12345' 
-  db_name: 'telegram_bot_db'
+  host_name: 
+  user_name:
+  user_password:  
+  db_name:
 bot:
-  token: 5494171046:AAEdBcniMJ4F8dtVXKSsypEJTidfoNchfVc
+  token: 
